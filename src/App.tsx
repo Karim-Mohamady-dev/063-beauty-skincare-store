@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import {
-  Check, Drop, Globe, Heart, MagnifyingGlass, ShoppingBag, Sparkle, Star, Trash, X,
+  Check, Drop, Globe, Heart, MagnifyingGlass, ShoppingBag, Star, Trash, X,
 } from '@phosphor-icons/react';
 import { dicts, initialLang, t, type Lang } from './i18n';
 
@@ -8,7 +8,7 @@ type Stock = 'in' | 'low' | 'out';
 type Review = { name: string; stars: number; textEn: string; textAr: string };
 type Product = {
   id: string; nameEn: string; nameAr: string; category: string; concern: string;
-  price: number; stock: Stock; color: string; isNew: boolean; pop: number;
+  price: number; stock: Stock; color: string; isNew: boolean; pop: number; image: string;
   ingredientsEn: string[]; ingredientsAr: string[]; reviews: Review[];
 };
 type CartItem = { id: string; qty: number };
@@ -20,18 +20,18 @@ const WISH_KEY = '063-bloom-wish-v1';
 const R = (name: string, stars: number, textEn: string, textAr: string): Review => ({ name, stars, textEn, textAr });
 
 const PRODUCTS: Product[] = [
-  { id: 'b1', nameEn: 'Hydra Glow Serum', nameAr: 'سيروم هيدرا جلو', category: 'skincare', concern: 'hydration', price: 42.37, stock: 'in', color: '#7dd3fc', isNew: true, pop: 94, ingredientsEn: ['Hyaluronic acid', 'Glycerin', 'Panthenol'], ingredientsAr: ['حمض الهيالورونيك', 'جلسرين', 'بانثينول'], reviews: [R('Mona Adel', 5, 'My skin felt softer after the first week of use.', 'شعرت ببشرتي أنعم بعد أول أسبوع من الاستخدام.'), R('Sara Nabil', 4, 'Light texture and no sticky feeling.', 'قوام خفيف ولا يترك إحساسا لزجا.')] },
-  { id: 'b2', nameEn: 'Vitamin C Bright Cream', nameAr: 'كريم فيتامين سي المشرق', category: 'skincare', concern: 'brightening', price: 38.91, stock: 'in', color: '#fbbf24', isNew: false, pop: 88, ingredientsEn: ['Vitamin C 10%', 'Ferulic acid', 'Vitamin E'], ingredientsAr: ['فيتامين سي 10٪', 'حمض الفيروليك', 'فيتامين هـ'], reviews: [R('Layla Hassan', 5, 'My skin tone looks more even after a month.', 'بدت درجة بشرتي أكثر توازنا بعد شهر.')] },
-  { id: 'b3', nameEn: 'Gentle Foam Cleanser', nameAr: 'غسول رغوي لطيف', category: 'skincare', concern: 'sensitivity', price: 21.64, stock: 'low', color: '#a7f3d0', isNew: false, pop: 81, ingredientsEn: ['Aloe vera', 'Chamomile extract', 'Glycerin'], ingredientsAr: ['ألوفيرا', 'مستخلص البابونج', 'جلسرين'], reviews: [R('Omar Fathy', 4, 'Does not dry my skin out after washing.', 'لا يجفف بشرتي بعد الغسل.')] },
-  { id: 'b4', nameEn: 'Matte Velvet Lipstick', nameAr: 'أحمر شفاه مخملي مطفي', category: 'makeup', concern: 'color', price: 18.47, stock: 'in', color: '#be185d', isNew: true, pop: 90, ingredientsEn: ['Shea butter', 'Jojoba oil', 'Vitamin E'], ingredientsAr: ['زبدة الشيا', 'زيت الجوجوبا', 'فيتامين هـ'], reviews: [R('Nour Ahmed', 5, 'Stays in place for hours without drying my lips.', 'يثبت لساعات دون أن يجفف شفتي.')] },
-  { id: 'b5', nameEn: 'Silk Finish Foundation', nameAr: 'كريم أساس سيلك فينيش', category: 'makeup', concern: 'coverage', price: 34.82, stock: 'in', color: '#f5d0a9', isNew: false, pop: 77, ingredientsEn: ['Niacinamide', 'Squalane', 'SPF 15'], ingredientsAr: ['نياسيناميد', 'سكوالان', 'عامل حماية 15'], reviews: [R('Hana Mostafa', 4, 'Blends easily and looks natural in daylight.', 'يمتزج بسهولة ويبدو طبيعيا في ضوء النهار.')] },
-  { id: 'b6', nameEn: 'Argan Repair Hair Oil', nameAr: 'زيت الأرغان لإصلاح الشعر', category: 'hair', concern: 'repair', price: 27.53, stock: 'in', color: '#f59e0b', isNew: false, pop: 83, ingredientsEn: ['Argan oil', 'Castor oil', 'Vitamin E'], ingredientsAr: ['زيت الأرغان', 'زيت الخروع', 'فيتامين هـ'], reviews: [R('Dina Samir', 5, 'My hair feels smoother and less frizzy.', 'شعري أنعم وأقل تجعيدا.')] },
-  { id: 'b7', nameEn: 'Clay Detox Mask', nameAr: 'قناع الطين المنقي', category: 'skincare', concern: 'pores', price: 24.19, stock: 'out', color: '#d6d3d1', isNew: false, pop: 72, ingredientsEn: ['Kaolin clay', 'Zinc PCA', 'Green tea extract'], ingredientsAr: ['طين الكاولين', 'زنك PCA', 'مستخلص الشاي الأخضر'], reviews: [R('Karim Adel', 4, 'My skin feels clean without tightness.', 'بشرتي نظيفة دون شد.')] },
-  { id: 'b8', nameEn: 'Rose Water Toner', nameAr: 'تونر ماء الورد', category: 'skincare', concern: 'hydration', price: 16.78, stock: 'in', color: '#f9a8d4', isNew: false, pop: 86, ingredientsEn: ['Rose water', 'Glycerin', 'Allantoin'], ingredientsAr: ['ماء الورد', 'جلسرين', 'ألانتوين'], reviews: [R('Farah Ali', 5, 'Refreshing and gentle on my skin.', 'منعش ولطيف على بشرتي.')] },
-  { id: 'b9', nameEn: 'Shea Body Butter', nameAr: 'زبدة الجسم بالشيا', category: 'body', concern: 'hydration', price: 22.46, stock: 'low', color: '#fef3c7', isNew: true, pop: 79, ingredientsEn: ['Shea butter', 'Cocoa butter', 'Sweet almond oil'], ingredientsAr: ['زبدة الشيا', 'زبدة الكاكاو', 'زيت اللوز الحلو'], reviews: [R('Maya Tarek', 5, 'Rich but absorbs well after a shower.', 'غنية وتمتص جيدا بعد الاستحمام.')] },
-  { id: 'b10', nameEn: 'Lash Length Mascara', nameAr: 'ماسكارا إطالة الرموش', category: 'makeup', concern: 'color', price: 19.93, stock: 'in', color: '#181818', isNew: false, pop: 84, ingredientsEn: ['Castor oil', 'Carnauba wax', 'Panthenol'], ingredientsAr: ['زيت الخروع', 'شمع الكرنوبا', 'بانثينول'], reviews: [R('Salma Yasser', 4, 'No clumps and easy to remove at night.', 'بدون تكتلات وسهلة الإزالة ليلا.')] },
-  { id: 'b11', nameEn: 'Scalp Soothe Shampoo', nameAr: 'شامبو تهدئة فروة الرأس', category: 'hair', concern: 'sensitivity', price: 23.71, stock: 'in', color: '#86efac', isNew: false, pop: 75, ingredientsEn: ['Tea tree oil', 'Aloe vera', 'Panthenol'], ingredientsAr: ['زيت شجرة الشاي', 'ألوفيرا', 'بانثينول'], reviews: [R('Ahmed Zaki', 4, 'My scalp feels calmer after two weeks.', 'فروة رأسي أهدأ بعد أسبوعين.')] },
-  { id: 'b12', nameEn: 'Retinol Night Cream', nameAr: 'كريم الريتينول الليلي', category: 'skincare', concern: 'anti-aging', price: 47.28, stock: 'low', color: '#c4b5fd', isNew: true, pop: 89, ingredientsEn: ['Retinol 0.3%', 'Squalane', 'Ceramide NP'], ingredientsAr: ['ريتينول 0.3٪', 'سكوالان', 'سيراميد NP'], reviews: [R('Rania Ehab', 5, 'Fine lines look softer after six weeks of use.', 'بدت الخطوط الدقيقة أنعم بعد ستة أسابيع.')] },
+  { id: 'b1', nameEn: 'Hydra Glow Serum', nameAr: 'سيروم هيدرا جلو', category: 'skincare', concern: 'hydration', price: 42.37, stock: 'in', color: '#7dd3fc', isNew: true, pop: 94, image: 'https://images.pexels.com/photos/39392892/pexels-photo-39392892/free-photo-of-elegant-minimalist-skincare-product-display.jpeg?cs=tinysrgb&dpr=1&w=500', ingredientsEn: ['Hyaluronic acid', 'Glycerin', 'Panthenol'], ingredientsAr: ['حمض الهيالورونيك', 'جلسرين', 'بانثينول'], reviews: [R('Mona Adel', 5, 'My skin felt softer after the first week of use.', 'شعرت ببشرتي أنعم بعد أول أسبوع من الاستخدام.'), R('Sara Nabil', 4, 'Light texture and no sticky feeling.', 'قوام خفيف ولا يترك إحساسا لزجا.')] },
+  { id: 'b2', nameEn: 'Vitamin C Bright Cream', nameAr: 'كريم فيتامين سي المشرق', category: 'skincare', concern: 'brightening', price: 38.91, stock: 'in', color: '#fbbf24', isNew: false, pop: 88, image: 'https://images.pexels.com/photos/27544691/pexels-photo-27544691/free-photo-of-a-white-tube-of-cream-and-a-green-plant-on-a-pink-background.jpeg?cs=tinysrgb&dpr=1&w=500', ingredientsEn: ['Vitamin C 10%', 'Ferulic acid', 'Vitamin E'], ingredientsAr: ['فيتامين سي 10٪', 'حمض الفيروليك', 'فيتامين هـ'], reviews: [R('Layla Hassan', 5, 'My skin tone looks more even after a month.', 'بدت درجة بشرتي أكثر توازنا بعد شهر.')] },
+  { id: 'b3', nameEn: 'Gentle Foam Cleanser', nameAr: 'غسول رغوي لطيف', category: 'skincare', concern: 'sensitivity', price: 21.64, stock: 'low', color: '#a7f3d0', isNew: false, pop: 81, image: 'https://images.pexels.com/photos/16008945/pexels-photo-16008945/free-photo-of-creams-in-bottles-with-pumps-standing-on-a-mirror-and-on-yellow-background.jpeg?cs=tinysrgb&dpr=1&w=500', ingredientsEn: ['Aloe vera', 'Chamomile extract', 'Glycerin'], ingredientsAr: ['ألوفيرا', 'مستخلص البابونج', 'جلسرين'], reviews: [R('Omar Fathy', 4, 'Does not dry my skin out after washing.', 'لا يجفف بشرتي بعد الغسل.')] },
+  { id: 'b4', nameEn: 'Matte Velvet Lipstick', nameAr: 'أحمر شفاه مخملي مطفي', category: 'makeup', concern: 'color', price: 18.47, stock: 'in', color: '#be185d', isNew: true, pop: 90, image: 'https://images.pexels.com/photos/7810573/pexels-photo-7810573.jpeg?cs=tinysrgb&dpr=1&w=500', ingredientsEn: ['Shea butter', 'Jojoba oil', 'Vitamin E'], ingredientsAr: ['زبدة الشيا', 'زيت الجوجوبا', 'فيتامين هـ'], reviews: [R('Nour Ahmed', 5, 'Stays in place for hours without drying my lips.', 'يثبت لساعات دون أن يجفف شفتي.')] },
+  { id: 'b5', nameEn: 'Silk Finish Foundation', nameAr: 'كريم أساس سيلك فينيش', category: 'makeup', concern: 'coverage', price: 34.82, stock: 'in', color: '#f5d0a9', isNew: false, pop: 77, image: 'https://images.pexels.com/photos/4938271/pexels-photo-4938271.jpeg?cs=tinysrgb&dpr=1&w=500', ingredientsEn: ['Niacinamide', 'Squalane', 'SPF 15'], ingredientsAr: ['نياسيناميد', 'سكوالان', 'عامل حماية 15'], reviews: [R('Hana Mostafa', 4, 'Blends easily and looks natural in daylight.', 'يمتزج بسهولة ويبدو طبيعيا في ضوء النهار.')] },
+  { id: 'b6', nameEn: 'Argan Repair Hair Oil', nameAr: 'زيت الأرغان لإصلاح الشعر', category: 'hair', concern: 'repair', price: 27.53, stock: 'in', color: '#f59e0b', isNew: false, pop: 83, image: 'https://images.pexels.com/photos/7428099/pexels-photo-7428099.jpeg?cs=tinysrgb&dpr=1&w=500', ingredientsEn: ['Argan oil', 'Castor oil', 'Vitamin E'], ingredientsAr: ['زيت الأرغان', 'زيت الخروع', 'فيتامين هـ'], reviews: [R('Dina Samir', 5, 'My hair feels smoother and less frizzy.', 'شعري أنعم وأقل تجعيدا.')] },
+  { id: 'b7', nameEn: 'Clay Detox Mask', nameAr: 'قناع الطين المنقي', category: 'skincare', concern: 'pores', price: 24.19, stock: 'out', color: '#d6d3d1', isNew: false, pop: 72, image: 'https://images.pexels.com/photos/7691112/pexels-photo-7691112.jpeg?cs=tinysrgb&dpr=1&w=500', ingredientsEn: ['Kaolin clay', 'Zinc PCA', 'Green tea extract'], ingredientsAr: ['طين الكاولين', 'زنك PCA', 'مستخلص الشاي الأخضر'], reviews: [R('Karim Adel', 4, 'My skin feels clean without tightness.', 'بشرتي نظيفة دون شد.')] },
+  { id: 'b8', nameEn: 'Rose Water Toner', nameAr: 'تونر ماء الورد', category: 'skincare', concern: 'hydration', price: 16.78, stock: 'in', color: '#f9a8d4', isNew: false, pop: 86, image: 'https://images.pexels.com/photos/7691166/pexels-photo-7691166.jpeg?cs=tinysrgb&dpr=1&w=500', ingredientsEn: ['Rose water', 'Glycerin', 'Allantoin'], ingredientsAr: ['ماء الورد', 'جلسرين', 'ألانتوين'], reviews: [R('Farah Ali', 5, 'Refreshing and gentle on my skin.', 'منعش ولطيف على بشرتي.')] },
+  { id: 'b9', nameEn: 'Shea Body Butter', nameAr: 'زبدة الجسم بالشيا', category: 'body', concern: 'hydration', price: 22.46, stock: 'low', color: '#fef3c7', isNew: true, pop: 79, image: 'https://images.pexels.com/photos/3785147/pexels-photo-3785147.jpeg?cs=tinysrgb&dpr=1&w=500', ingredientsEn: ['Shea butter', 'Cocoa butter', 'Sweet almond oil'], ingredientsAr: ['زبدة الشيا', 'زبدة الكاكاو', 'زيت اللوز الحلو'], reviews: [R('Maya Tarek', 5, 'Rich but absorbs well after a shower.', 'غنية وتمتص جيدا بعد الاستحمام.')] },
+  { id: 'b10', nameEn: 'Lash Length Mascara', nameAr: 'ماسكارا إطالة الرموش', category: 'makeup', concern: 'color', price: 19.93, stock: 'in', color: '#181818', isNew: false, pop: 84, image: 'https://images.pexels.com/photos/7256145/pexels-photo-7256145.jpeg?cs=tinysrgb&dpr=1&w=500', ingredientsEn: ['Castor oil', 'Carnauba wax', 'Panthenol'], ingredientsAr: ['زيت الخروع', 'شمع الكرنوبا', 'بانثينول'], reviews: [R('Salma Yasser', 4, 'No clumps and easy to remove at night.', 'بدون تكتلات وسهلة الإزالة ليلا.')] },
+  { id: 'b11', nameEn: 'Scalp Soothe Shampoo', nameAr: 'شامبو تهدئة فروة الرأس', category: 'hair', concern: 'sensitivity', price: 23.71, stock: 'in', color: '#86efac', isNew: false, pop: 75, image: 'https://images.pexels.com/photos/13573923/pexels-photo-13573923.jpeg?cs=tinysrgb&dpr=1&w=500', ingredientsEn: ['Tea tree oil', 'Aloe vera', 'Panthenol'], ingredientsAr: ['زيت شجرة الشاي', 'ألوفيرا', 'بانثينول'], reviews: [R('Ahmed Zaki', 4, 'My scalp feels calmer after two weeks.', 'فروة رأسي أهدأ بعد أسبوعين.')] },
+  { id: 'b12', nameEn: 'Retinol Night Cream', nameAr: 'كريم الريتينول الليلي', category: 'skincare', concern: 'anti-aging', price: 47.28, stock: 'low', color: '#c4b5fd', isNew: true, pop: 89, image: 'https://images.pexels.com/photos/7691162/pexels-photo-7691162.jpeg?cs=tinysrgb&dpr=1&w=500', ingredientsEn: ['Retinol 0.3%', 'Squalane', 'Ceramide NP'], ingredientsAr: ['ريتينول 0.3٪', 'سكوالان', 'سيراميد NP'], reviews: [R('Rania Ehab', 5, 'Fine lines look softer after six weeks of use.', 'بدت الخطوط الدقيقة أنعم بعد ستة أسابيع.')] },
 ];
 
 const CATS = ['skincare', 'makeup', 'hair', 'body'];
@@ -144,8 +144,8 @@ export default function App() {
     return (
       <article key={p.id} className="overflow-hidden rounded-2xl border border-[#e3e3e3] motion-hover hover:shadow-lg">
         <button type="button" onClick={() => setDetail(p)} className="block w-full text-start" aria-label={nameOf(p)}>
-          <span className="relative flex h-40 items-center justify-center" style={{ backgroundColor: p.color }}>
-            <Sparkle size={72} weight="fill" className="text-white/80" />
+          <span className="relative block h-40 overflow-hidden">
+            <img src={p.image} alt={nameOf(p)} loading="lazy" className="h-full w-full object-cover" />
             {p.isNew && <span className="caption-4 absolute top-2 start-2 rounded-full bg-[#181818] px-2 py-1 text-white">{tr('new')}</span>}
           </span>
         </button>
@@ -294,8 +294,8 @@ export default function App() {
               </div>
               <button type="button" onClick={() => setDetail(null)} className="rounded-lg p-2 motion-hover hover:bg-[#fdf2f8]" aria-label={tr('close')}><X size={18} /></button>
             </div>
-            <div className="mt-4 flex h-40 items-center justify-center rounded-2xl" style={{ backgroundColor: detail.color }}>
-              <Sparkle size={96} weight="fill" className="text-white/80" />
+            <div className="mt-4 h-40 overflow-hidden rounded-2xl">
+              <img src={detail.image} alt={nameOf(detail)} loading="lazy" className="h-full w-full object-cover" />
             </div>
             <div className="mt-4 flex items-center justify-between">
               <span className="heading-5">${detail.price.toFixed(2)}</span>
@@ -356,7 +356,7 @@ export default function App() {
                     if (!p) return null;
                     return (
                       <li key={item.id} className="flex items-center gap-3 rounded-xl border border-[#e3e3e3] p-3">
-                        <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg" style={{ backgroundColor: p.color }}><Sparkle size={24} weight="fill" className="text-white" /></span>
+                        <img src={p.image} alt="" loading="lazy" className="h-12 w-12 shrink-0 rounded-lg object-cover" />
                         <span className="min-w-0 flex-1">
                           <span className="body-5 block truncate">{nameOf(p)}</span>
                           <span className="caption-5 block text-[#666666]">${p.price.toFixed(2)} · ${(p.price * item.qty).toFixed(2)}</span>
